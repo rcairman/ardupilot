@@ -205,7 +205,10 @@ private:
     void load_parameters(void);
     void update_auto(void);
     void update_manual(void);
+    void update_manual_angle(void);
     void update_scan(void);
+    void update_servo_test(void);
+    void update_initialising(void);
     bool servo_test_set_servo(uint8_t servo_num, uint16_t pwm);
     void read_radio();
     void init_barometer(void);

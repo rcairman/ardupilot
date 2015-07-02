@@ -43,8 +43,8 @@ void Tracker::update_tracker_position()
  */
 void Tracker::update_bearing_and_distance()
 {
-    // exit immediately if we do not have a valid vehicle position
-    if (!vehicle.location_valid) {
+    // exit immediately if we do not have a valid vehicle position or servo_test is in progress
+    if (!vehicle.location_valid || control_mode == SERVO_TEST) {
         return;
     }
 
@@ -96,6 +96,7 @@ void Tracker::update_tracking(void)
 
     case MANUAL:
         update_manual();
+		//update_manual_angle(); // Angle-oriented control rather than PWM oriented control
         break;
 
     case SCAN:
@@ -103,8 +104,13 @@ void Tracker::update_tracking(void)
         break;
 
     case SERVO_TEST:
+        update_servo_test();
+        break;
     case STOP:
+        disarm_servos();
+        break;
     case INITIALISING:
+        update_initialising();
         break;
     }
 }
@@ -169,5 +175,32 @@ void Tracker::update_armed_disarmed()
         AP_Notify::flags.armed = true;
     } else {
         AP_Notify::flags.armed = false;
+    }
+}
+
+int delay_timer=0;  // fixme: this needs to be done properly
+
+void Tracker::update_initialising(void)
+{
+    // fixed angle for pitch initialising. Zero servo output to prevent erratic movement.
+    nav_status.pitch = 45;
+       
+    channel_yaw.disable_out();
+    channel_pitch.enable_out();
+    
+    float pitch = constrain_float(nav_status.pitch+g.pitch_trim, -90, 90);
+    
+    update_pitch_servo(pitch);
+    
+    float ahrs_pitch = degrees(ahrs.pitch);
+    if (ahrs_pitch < 50 && ahrs_pitch > 40)
+    {
+        if (delay_timer == 0) delay_timer = hal.scheduler->millis();
+        // PITCH INITIALISING complete, switch to auto mode after delay
+        if (g.startup_delay > 0 &&
+            hal.scheduler->millis() - delay_timer < g.startup_delay*1000) {
+            return;
+        }
+        set_mode(AUTO);
     }
 }

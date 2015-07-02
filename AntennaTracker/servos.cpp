@@ -145,6 +145,17 @@ void Tracker::update_pitch_onoff_servo(float pitch)
 void Tracker::update_pitch_cr_servo(float pitch)
 {
     float ahrs_pitch = degrees(ahrs.pitch);
+
+    // mechanical limits for pitch servo + gimbal lock
+    if (pitch > g.pitch_range)
+    {
+      pitch = g.pitch_range;
+    }
+    if (pitch < -g.pitch_range)
+    {
+      pitch = -g.pitch_range;
+    }
+
     float err_cd = (pitch - ahrs_pitch) * 100.0f;
     channel_pitch.servo_out = g.pidPitch2Srv.get_pid(err_cd);
 }
@@ -288,7 +299,7 @@ void Tracker::update_yaw_position_servo(float yaw)
     }
     channel_yaw.servo_out = new_servo_out;
 
-    // position limit pitch servo
+    // position limit yaw servo
     if (channel_yaw.servo_out <= -yaw_limit_cd) {
         channel_yaw.servo_out = -yaw_limit_cd;
         servo_limit.yaw_lower = true;
