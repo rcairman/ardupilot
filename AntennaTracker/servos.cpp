@@ -34,7 +34,9 @@ void Tracker::update_pitch_servo(float pitch)
         break;
 
     case SERVO_TYPE_CR:
-        update_pitch_cr_servo(pitch);
+        //update_pitch_cr_servo(pitch);
+        // for Palo Sestak (using standard servo for pitch and CR servo for YAW)
+        update_pitch_position_servo(pitch);
         break;
 
     case SERVO_TYPE_POSITION:
