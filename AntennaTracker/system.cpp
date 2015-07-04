@@ -102,6 +102,11 @@ void Tracker::init_tracker()
         get_home_eeprom(current_loc);
     }
 
+    // initialize old_loc structure for storing previous location (gps averaging)
+    old_loc.alt = 0;
+    old_loc.lat = 0;
+    old_loc.lng = 0;
+
     gcs_send_text_P(SEVERITY_LOW,PSTR("\nReady to track."));
     hal.scheduler->delay(1000); // Why????
 

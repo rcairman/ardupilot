@@ -139,6 +139,7 @@ private:
     AP_BoardConfig BoardConfig;
 
     struct Location current_loc;
+    struct Location old_loc;    // This struct stores previous location for GPS averaging
 
     enum ControlMode control_mode  = INITIALISING;
 

@@ -34,6 +34,14 @@ void Tracker::update_tracker_position()
     // REVISIT: what if we lose lock during a mission and the antenna is moving?
     if (gps.status() >= AP_GPS::GPS_OK_FIX_2D) {
         current_loc = gps.location();
+
+        if (old_loc.alt == 0 && old_loc.lat == 0 && old_loc.lng == 0) {
+            old_loc = gps.location();
+        }
+        current_loc.alt = 0.95f * old_loc.alt + 0.05f * current_loc.alt;
+        current_loc.lat = 0.95f * old_loc.lat + 0.05f * current_loc.lat;
+        current_loc.lng = 0.95f * old_loc.lng + 0.05f * current_loc.lng;
+        old_loc = current_loc;
     }
 }
 
