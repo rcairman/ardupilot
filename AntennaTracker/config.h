@@ -56,6 +56,9 @@
 #ifndef DISTANCE_MIN_DEFAULT
  # define DISTANCE_MIN_DEFAULT              5.0f    // do not track targets within 5 meters
 #endif
+#ifndef ALT_SOURCE_DEFAULT
+ # define ALT_SOURCE_DEFAULT              0         // default source of data for altitude calculation (0 - baro, 1 - gps)
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // Developer Items

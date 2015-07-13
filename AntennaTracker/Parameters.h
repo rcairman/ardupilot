@@ -93,7 +93,7 @@ public:
         k_param_distance_min,
         k_param_sysid_target,       // 138
         k_param_gcs3,               // stream rates for fourth MAVLink port
-
+		k_param_alt_source,         // altitude reading source (baro vs gps)
         //
         // 150: Telemetry control
         //
@@ -143,6 +143,7 @@ public:
     AP_Int16 yaw_range;             // yaw axis total range of motion in degrees
     AP_Int16 pitch_range;           // pitch axis total range of motion in degrees
     AP_Int16 distance_min;          // target's must be at least this distance from tracker to be tracked
+    AP_Int8 alt_source;
 
     // Waypoints
     //

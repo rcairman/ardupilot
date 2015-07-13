@@ -230,6 +230,15 @@ const AP_Param::Info Tracker::var_info[] PROGMEM = {
     GOBJECTN(gcs[3],  gcs3,       "SR3_",     GCS_MAVLINK),
 #endif
 
+    // @Param: ALT_SOURCE
+    // @DisplayName: Altitude reading source
+    // @Description: Tracker will use this type of data to determine altitude and calculate pitch. 0 - Baro, 1 - GPS.
+	// @Units: bool
+    // @Increment: 1
+    // @Range: 0 1
+    // @User: Standard
+    GSCALAR(alt_source,           "ALT_SOURCE", ALT_SOURCE_DEFAULT),
+
     // @Group: INS_
     // @Path: ../libraries/AP_InertialSensor/AP_InertialSensor.cpp
     GOBJECT(ins,                    "INS_", AP_InertialSensor),
