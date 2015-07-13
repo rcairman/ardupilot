@@ -135,6 +135,9 @@ void Tracker::tracking_update_position(const mavlink_global_position_int_t &msg)
     vehicle.ground_speed = pythagorous2(msg.vx, msg.vy) * 0.01f;
     vehicle.last_update_us = hal.scheduler->micros();    
     vehicle.last_update_ms = hal.scheduler->millis();
+    if (g.alt_source == 1){
+        tracking_update_gps_alt();
+    }
 }
 
 
@@ -143,6 +146,10 @@ void Tracker::tracking_update_position(const mavlink_global_position_int_t &msg)
  */
 void Tracker::tracking_update_pressure(const mavlink_scaled_pressure_t &msg)
 {
+    // exit if we use gps altitude
+    if (g.alt_source != 0){
+        return;
+    }
     float local_pressure = barometer.get_pressure();
     float aircraft_pressure = msg.press_abs*100.0f;
 
@@ -158,6 +165,13 @@ void Tracker::tracking_update_pressure(const mavlink_scaled_pressure_t &msg)
         nav_status.altitude_offset = -nav_status.altitude_difference;
         nav_status.altitude_difference = 0;
         nav_status.need_altitude_calibration = false;
+    }
+}
+
+void Tracker::tracking_update_gps_alt()
+{
+    if (vehicle.location_valid == true){
+        nav_status.altitude_difference = (vehicle.location.alt - current_loc.alt) / 100;
     }
 }
 

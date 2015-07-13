@@ -245,6 +245,7 @@ private:
     void update_tracking(void);
     void tracking_update_position(const mavlink_global_position_int_t &msg);
     void tracking_update_pressure(const mavlink_scaled_pressure_t &msg);
+    void tracking_update_gps_alt();
     void tracking_manual_control(const mavlink_manual_control_t &msg);
     void update_armed_disarmed();
     void gcs_send_text_fmt(const prog_char_t *fmt, ...);
