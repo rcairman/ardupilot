@@ -67,9 +67,9 @@ void Tracker::update_bearing_and_distance()
 
     // calculate pitch to vehicle
     // To-Do: remove need for check of control_mode
-    if (control_mode != SCAN && !nav_status.manual_control_pitch) {
+//    if (control_mode != SCAN && !nav_status.manual_control_pitch) {
         nav_status.pitch    = degrees(atan2f(nav_status.altitude_difference, nav_status.distance));
-    }
+//    }
 }
 
 /**
@@ -136,7 +136,7 @@ void Tracker::tracking_update_position(const mavlink_global_position_int_t &msg)
     vehicle.last_update_us = hal.scheduler->micros();    
     vehicle.last_update_ms = hal.scheduler->millis();
     if (g.alt_source == 1){
-        tracking_update_gps_alt();
+//        tracking_update_gps_alt();
     }
 }
 
@@ -148,7 +148,7 @@ void Tracker::tracking_update_pressure(const mavlink_scaled_pressure_t &msg)
 {
     // exit if we use gps altitude
     if (g.alt_source != 0){
-        return;
+//        return;
     }
     float local_pressure = barometer.get_pressure();
     float aircraft_pressure = msg.press_abs*100.0f;
