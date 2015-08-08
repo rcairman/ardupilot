@@ -357,6 +357,7 @@ void Copter::Log_Write_Performance()
 void Copter::Log_Write_Attitude()
 {
     Vector3f targets = attitude_control.angle_ef_targets();
+    targets.z = wrap_360_cd_float(targets.z);
     DataFlash.Log_Write_Attitude(ahrs, targets);
 
  #if OPTFLOW == ENABLED
@@ -424,6 +425,7 @@ struct PACKED log_MotBatt {
 // Write an rate packet
 void Copter::Log_Write_MotBatt()
 {
+#if FRAME_CONFIG != HELI_FRAME
     struct log_MotBatt pkt_mot = {
         LOG_PACKET_HEADER_INIT(LOG_MOTBATT_MSG),
         time_us         : hal.scheduler->micros64(),
@@ -433,6 +435,7 @@ void Copter::Log_Write_MotBatt()
         th_limit        : (float)(motors.get_throttle_limit())
     };
     DataFlash.WriteBlock(&pkt_mot, sizeof(pkt_mot));
+#endif
 }
 
 struct PACKED log_Startup {
@@ -448,11 +451,6 @@ void Copter::Log_Write_Startup()
         time_us         : hal.scheduler->micros64()
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
-
-    // write all commands to the dataflash as well
-    if (should_log(MASK_LOG_CMD)) {
-        DataFlash.Log_Write_EntireMission(mission);
-    }
 }
 
 struct PACKED log_Event {
@@ -631,6 +629,37 @@ void Copter::Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, int16_t
     DataFlash.WriteBlock(&pkt_tune, sizeof(pkt_tune));
 }
 
+// log EKF origin and ahrs home to dataflash
+void Copter::Log_Write_Home_And_Origin()
+{
+    // log ekf origin if set
+    Location ekf_orig;
+    if (ahrs.get_NavEKF_const().getOriginLLH(ekf_orig)) {
+        DataFlash.Log_Write_Origin(LogOriginType::ekf_origin, ekf_orig);
+    }
+
+    // log ahrs home if set
+    if (ap.home_state != HOME_UNSET) {
+        DataFlash.Log_Write_Origin(LogOriginType::ahrs_home, ahrs.get_home());
+    }
+}
+
+// logs when baro or compass becomes unhealthy
+void Copter::Log_Sensor_Health()
+{
+    // check baro
+    if (sensor_health.baro != barometer.healthy()) {
+        sensor_health.baro = barometer.healthy();
+        Log_Write_Error(ERROR_SUBSYSTEM_BARO, (sensor_health.baro ? ERROR_CODE_ERROR_RESOLVED : ERROR_CODE_UNHEALTHY));
+    }
+
+    // check compass
+    if (sensor_health.compass != compass.healthy()) {
+        sensor_health.compass = compass.healthy();
+        Log_Write_Error(ERROR_SUBSYSTEM_COMPASS, (sensor_health.compass ? ERROR_CODE_ERROR_RESOLVED : ERROR_CODE_UNHEALTHY));
+    }
+}
+
 struct PACKED log_Heli {
     LOG_PACKET_HEADER;
     uint64_t time_us;
@@ -724,6 +753,11 @@ void Copter::start_logging()
 
             DataFlash.Log_Write_Message_P(PSTR("Frame: " FRAME_CONFIG_STRING));
 
+            // write mission commands
+            if (MASK_LOG_CMD & g.log_bitmask) {
+                DataFlash.Log_Write_EntireMission(mission);
+            }
+
             Log_Write_Startup();
 
             // log the flight mode
@@ -736,7 +770,7 @@ void Copter::start_logging()
 
 void Copter::log_init(void)
 {
-    DataFlash.Init(log_structure, sizeof(log_structure)/sizeof(log_structure[0]));
+    DataFlash.Init(log_structure, ARRAY_SIZE(log_structure));
     if (!DataFlash.CardInserted()) {
         gcs_send_text_P(SEVERITY_HIGH, PSTR("No dataflash inserted"));
         g.log_bitmask.set(0);
@@ -747,4 +781,51 @@ void Copter::log_init(void)
     }
 }
 
-#endif // LOGGING_DISABLED
+#else // LOGGING_ENABLED
+
+#if CLI_ENABLED == ENABLED
+bool Copter::print_log_menu(void) { return true; }
+int8_t Copter::dump_log(uint8_t argc, const Menu::arg *argv) { return 0; }
+int8_t Copter::erase_logs(uint8_t argc, const Menu::arg *argv) { return 0; }
+int8_t Copter::select_logs(uint8_t argc, const Menu::arg *argv) { return 0; }
+int8_t Copter::process_logs(uint8_t argc, const Menu::arg *argv) { return 0; }
+void Copter::Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page) {}
+#endif // CLI_ENABLED == ENABLED
+
+void Copter::do_erase_logs(void) {}
+void Copter::Log_Write_AutoTune(uint8_t axis, uint8_t tune_step, float meas_target, \
+                                float meas_min, float meas_max, float new_gain_rp, \
+                                float new_gain_rd, float new_gain_sp, float new_ddt) {}
+void Copter::Log_Write_AutoTuneDetails(float angle_cd, float rate_cds) {}
+void Copter::Log_Write_Current() {}
+void Copter::Log_Write_Nav_Tuning() {}
+void Copter::Log_Write_Control_Tuning() {}
+void Copter::Log_Write_Performance() {}
+void Copter::Log_Write_Attitude(void) {}
+void Copter::Log_Write_Rate() {}
+void Copter::Log_Write_MotBatt() {}
+void Copter::Log_Write_Startup() {}
+void Copter::Log_Write_Event(uint8_t id) {}
+void Copter::Log_Write_Data(uint8_t id, int32_t value) {}
+void Copter::Log_Write_Data(uint8_t id, uint32_t value) {}
+void Copter::Log_Write_Data(uint8_t id, int16_t value) {}
+void Copter::Log_Write_Data(uint8_t id, uint16_t value) {}
+void Copter::Log_Write_Data(uint8_t id, float value) {}
+void Copter::Log_Write_Error(uint8_t sub_system, uint8_t error_code) {}
+void Copter::Log_Write_Baro(void) {}
+void Copter::Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, int16_t control_in, int16_t tune_low, int16_t tune_high) {}
+void Copter::Log_Write_Home_And_Origin() {}
+void Copter::Log_Sensor_Health() {}
+
+#if FRAME_CONFIG == HELI_FRAME
+void Copter::Log_Write_Heli() {}
+#endif
+
+#if OPTFLOW == ENABLED
+void Copter::Log_Write_Optflow() {}
+#endif
+
+void Copter::start_logging() {}
+void Copter::log_init(void) {}
+
+#endif // LOGGING_ENABLED

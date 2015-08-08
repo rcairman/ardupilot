@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # home location lat, lon, alt, heading
-LOCATION="CMAC"
+LOCATION="PIAP"
 TRACKER_LOCATION="CMAC_PILOTSBOX"
 VEHICLE=""
 BUILD_TARGET="sitl"
@@ -250,6 +250,11 @@ case $FRAME in
     IrisRos)
 	BUILD_TARGET="sitl"
 	;;
+    Gazebo)
+	BUILD_TARGET="sitl"
+        EXTRA_SIM="$EXTRA_SIM --frame=Gazebo"
+        MODEL="$FRAME"
+	;;
     CRRCSim-heli)
 	BUILD_TARGET="sitl-heli"
         MODEL="$FRAME"
@@ -276,12 +281,19 @@ if [ -n "$OVERRIDE_BUILD_TARGET" ]; then
     BUILD_TARGET="$OVERRIDE_BUILD_TARGET"
 fi
 
-autotest=$(dirname $(readlink -e $0))
+autotest="../Tools/autotest"
+[ -d "$autotest" ] || {
+    # we are not running from one of the standard vehicle directories. Use 
+    # the location of the sim_vehicle.sh script to find the path
+    autotest=$(dirname $(readlink -e $0))
+}
 pushd $autotest/../../$VEHICLE || {
     echo "Failed to change to vehicle directory for $VEHICLE"
     usage
     exit 1
 }
+AUTOTEST=$autotest
+export AUTOTEST
 VEHICLEDIR=$(pwd)
 
 if [ $NO_REBUILD == 0 ]; then

@@ -70,7 +70,7 @@ bool Tracker::servo_test_set_servo(uint8_t servo_num, uint16_t pwm)
     }
 
     // CR servo test
-    int yaw_in;  //fixme zmienic typ danych
+    int yaw_in;  //FIXME zmienic typ danych
     int pitch_in;
     
     pitch_in = constrain_int16(pwm, channel_pitch.radio_min, channel_pitch.radio_max);

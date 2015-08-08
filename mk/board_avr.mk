@@ -70,7 +70,10 @@ BOARD ?= mega2560
 
 # Find the hardware directory to use
 HARDWARE_DIR		:=	$(firstword $(wildcard $(SKETCHBOOK)/hardware/$(HARDWARE) \
-							$(ARDUINO)/hardware/$(HARDWARE)))
+							$(ARDUINO)/hardware/$(HARDWARE)/avr \
+							$(ARDUINO)/hardware/$(HARDWARE) \
+							)\
+							)
 ifeq ($(HARDWARE_DIR),)
 $(error ERROR: hardware directory for $(HARDWARE) not found)
 endif
@@ -155,7 +158,7 @@ print-%:
 
 .PHONY: upload
 upload: $(SKETCHHEX)
-	$(AVRDUDE) -c $(UPLOAD_PROTOCOL) -p $(MCU) -P $(PORT) -b$(UPLOAD_SPEED) $(USERAVRDUDEFLAGS) -U flash:w:$(SKETCHHEX):i
+	$(AVRDUDE) -c $(UPLOAD_PROTOCOL) -p $(MCU) -P /dev/ttyACM0 -b$(UPLOAD_SPEED) $(USERAVRDUDEFLAGS) -U flash:w:$(SKETCHHEX):i
 
 debug:
 	$(AVARICE) --mkII --capture --jtag usb :4242 & \
