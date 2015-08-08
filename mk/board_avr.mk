@@ -158,7 +158,7 @@ print-%:
 
 .PHONY: upload
 upload: $(SKETCHHEX)
-	$(AVRDUDE) -c $(UPLOAD_PROTOCOL) -p $(MCU) -P $(PORT) -b$(UPLOAD_SPEED) $(USERAVRDUDEFLAGS) -U flash:w:$(SKETCHHEX):i
+	$(AVRDUDE) -c $(UPLOAD_PROTOCOL) -p $(MCU) -P /dev/ttyACM0 -b$(UPLOAD_SPEED) $(USERAVRDUDEFLAGS) -U flash:w:$(SKETCHHEX):i
 
 debug:
 	$(AVARICE) --mkII --capture --jtag usb :4242 & \

@@ -59,7 +59,7 @@ void Tracker::update_bearing_and_distance()
 
     // calculate pitch to vehicle
     // To-Do: remove need for check of control_mode
-    if (control_mode != SCAN && control_mode != MANUAL) {
+    if (control_mode != SCAN && !nav_status.manual_control_pitch) {
         nav_status.pitch    = degrees(atan2f(nav_status.altitude_difference, nav_status.distance));
     }
 }
